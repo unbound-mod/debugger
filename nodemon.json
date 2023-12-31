@@ -1,0 +1,9 @@
+{
+    "ignore": [
+        "dist",
+        "src-tauri/*",
+        "vite.config.ts.timestamp-*.mjs"
+    ],
+    "exec": "pnpm tauri dev",
+    "ext": "*.*"
+}
