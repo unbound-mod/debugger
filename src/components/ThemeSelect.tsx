@@ -1,8 +1,12 @@
-import { Show, For, createSignal, createResource } from 'solid-js';
+import { Show, For, createSignal, createResource, createEffect } from 'solid-js';
 import fetchThemes from '../lib/fetchThemes';
 
 const [data] = createResource(fetchThemes);
-export const [theme, setTheme] = createSignal('Dracula');
+export const [theme, setTheme] = createSignal(localStorage.getItem('theme') ?? 'Dracula');
+
+createEffect(() => {
+    localStorage.setItem('theme', theme());
+})
 
 export default () => {
     return <Show when={!data?.loading} fallback="Loading...">
