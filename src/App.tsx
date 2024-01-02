@@ -1,4 +1,5 @@
 import CodeArea from './components/CodeArea';
+import Output from './components/Output';
 
 function App() {
   return (
@@ -7,9 +8,10 @@ function App() {
         height: '100vh', 
         display: 'flex', 
         overflow: 'hidden',
-        'flex-direction': 'row'
+        'flex-direction': 'row',
     }}>
         <CodeArea />
+        <Output />
     </div>
   );
 }

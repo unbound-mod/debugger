@@ -1,10 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use hostname::get;
 use lazy_static::lazy_static;
 use tokio::sync::Mutex;
 
 mod socket;
-use socket::{create_server, find_available_port};
+use socket::{create_server, get_host_and_port};
 
 lazy_static! {
     static ref SERVER_URI: Mutex<Option<String>> = Mutex::new(None);
@@ -18,12 +19,16 @@ async fn get_server_uri() -> String {
     }
 
     let start_port: u16 = 5253;
-    let port = find_available_port(start_port).await;
-    let uri = format!("ws://127.0.0.1:{}", port);
+    let (host, port) = get_host_and_port(start_port).await;
 
+    let host_os_str = get().expect("Failed to get hostname.");
+    let host_str = host_os_str
+        .to_str()
+        .expect("Failed to convert hostname to &str");
+    let uri = format!("ws://{}:{}", host_str, port);
     *server_uri = Some(uri.clone());
-    create_server(port).await;
 
+    create_server(host, port).await;
     uri
 }
 
