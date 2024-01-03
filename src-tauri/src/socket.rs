@@ -12,8 +12,6 @@ use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message};
 
-use serde_json::{Result, Value};
-
 type Tx = SenderWithAddr<Message>;
 type Clients = Arc<Mutex<HashMap<SocketAddr, Tx>>>;
 
@@ -65,22 +63,11 @@ async fn handle_connection(clients: Clients, stream: TcpStream, addr: SocketAddr
 
     let (outgoing, incoming) = ws_stream.split();
 
-    let broadcast_incoming = incoming.try_for_each(|msg| {
+    let broadcast_incoming = incoming.try_for_each(|message| {
         let connections = clients.lock().unwrap();
-        let msg_string = msg
+        let message = message
             .into_text()
             .expect("Failed to convert message into string!");
-        let msg_json: Result<HashMap<String, Value>> = serde_json::from_str(&msg_string);
-
-        let data = match msg_json {
-            Ok(res) => res,
-            Err(_) => {
-                let mut res = HashMap::new();
-                res.insert("content".to_string(), Value::String(msg_string));
-
-                res
-            }
-        };
 
         // Get all of the connections which aren't this connection
         let broadcast_recipients = connections
@@ -88,20 +75,13 @@ async fn handle_connection(clients: Clients, stream: TcpStream, addr: SocketAddr
             .filter(|(peer_addr, _)| peer_addr != &&addr)
             .map(|(_, ws_sink)| ws_sink);
 
-        let content = match data.get("content") {
-            Some(content) => content
-                .as_str()
-                .expect("Failed to convert content to string."),
-            None => "null",
-        };
-
-        println!("Received a message from {}: {}", addr, content);
+        println!("Received a message from {}: {}", addr, message);
 
         for recp in broadcast_recipients {
             println!("Sending the message to {}", recp.addr);
 
             recp.sender
-                .unbounded_send(Message::Text(content.to_string()))
+                .unbounded_send(Message::Text(message.clone()))
                 .unwrap();
         }
 
