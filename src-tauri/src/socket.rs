@@ -69,7 +69,7 @@ async fn handle_connection(clients: Clients, stream: TcpStream, addr: SocketAddr
             .into_text()
             .expect("Failed to convert message into string!");
 
-        // Get all of the connections which aren't this connection
+        // Get all of the connections which aren"t this connection
         let broadcast_recipients = connections
             .iter()
             .filter(|(peer_addr, _)| peer_addr != &&addr)

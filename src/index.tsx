@@ -1,4 +1,17 @@
 import { render } from 'solid-js/web';
-import App from './App';
+import { ColorModeProvider, ColorModeScript, cookieStorageManager } from '@kobalte/core'
 
-render(() => <App />, document.getElementById('root') as HTMLElement);
+import App from './App';
+import { init } from '@/lib/socket';
+
+function Root() {
+    return <>
+        <ColorModeScript storageType={cookieStorageManager.type} />
+        <ColorModeProvider storageManager={cookieStorageManager}>
+            <App />
+        </ColorModeProvider>
+    </>
+}
+
+render(() => <Root />, document.getElementById('root') as HTMLElement);
+init();
